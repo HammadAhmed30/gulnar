@@ -20,9 +20,10 @@ import { useSnapshot } from "valtio";
 import { state } from "../../../../store/store";
 import { urlFor } from "@/sanity/lib/image";
 import { client } from "@/sanity/lib/client";
+import { useRouter } from "next/navigation";
 
 export default function CheckoutForm() {
-  const { cart, subtotal } = useCart();
+  const { cart, subtotal, emptyCart } = useCart();
 
   const { sale } = useSnapshot(state);
   console.log(cart);
@@ -34,11 +35,8 @@ export default function CheckoutForm() {
   const [address, setAddress] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
 
-  const [loading, setLoading] = useState(false)
-  const [msg, setMsg] = useState(null)
-
-  
-
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState(null);
 
   console.log(cart, "nigga cart");
 
@@ -49,39 +47,42 @@ export default function CheckoutForm() {
       ? item?.price * ((100 - sale?.percentageOff) / 100)
       : item?.price,
   }));
+  const router = useRouter();
 
   async function placeOrder() {
     try {
-        const currentDate = new Date();
+      const currentDate = new Date();
 
-  // Extract day, month, and year
-  const day = String(currentDate.getDate()).padStart(2, "0"); // Ensure two digits
-  const month = String(currentDate.getMonth() + 1).padStart(2, "0"); // Months are zero-based
-  const year = currentDate.getFullYear();
+      // Extract day, month, and year
+      const day = String(currentDate.getDate()).padStart(2, "0"); // Ensure two digits
+      const month = String(currentDate.getMonth() + 1).padStart(2, "0"); // Months are zero-based
+      const year = currentDate.getFullYear();
 
-  // Format the date as dd-mm-yyyy
-  const formattedDate = `${year}-${month}-${day}`;
-        console.log(name, address, city, phoneNumber)
+
+      // Format the date as dd-mm-yyyy
+      const formattedDate = `${year}-${month}-${day}`;
+      console.log(name, address, city, phoneNumber);
 
       if (name !== "" && address !== "" && city !== "" && phoneNumber !== "") {
-        setMsg(null)
-        setLoading(true)
+        setMsg(null);
+        setLoading(true);
         const order = await client.create({
           _type: "order", // Assuming you have an 'order' schema
           customerName: name,
           address,
           city,
           phoneNumber,
-          date:formattedDate,
-          status:false,
+          date: formattedDate,
+          status: false,
           items: arr,
         });
 
-setLoading(false)
-console.log("done nigga")
-      }
-      else{
-        setMsg("Please Fill All the Feilds")
+        setLoading(false);
+        emptyCart();
+        router.push("/order-placed");
+        // console.log("done nigga")
+      } else {
+        setMsg("Please Fill All the Feilds");
       }
     } catch (error) {
       console.log(error);
@@ -91,9 +92,11 @@ console.log("done nigga")
   return (
     <div className="container mx-auto p-4">
       <title>Checkout | Gulnar</title>
-        {loading&&<div className="w-full h-full fixed top-0 left-0 right-0 bottom-0 flex justify-center items-center bg-[rgb(256,256,256,.5)]">
-            <div className="w-[35px] h-[35px] rounded-full border-[5px] border-y-0 border-black animate-spin"></div>
-            </div>}
+      {loading && (
+        <div className="w-full h-full fixed top-0 left-0 right-0 bottom-0 flex justify-center items-center bg-[rgb(256,256,256,.5)]">
+          <div className="w-[35px] h-[35px] rounded-full border-[5px] border-y-0 border-black animate-spin"></div>
+        </div>
+      )}
       <div className="lg:grid lg:grid-cols-3 lg:gap-8">
         <div className="lg:col-span-2">
           <Card className="mb-6 lg:mb-0">
@@ -113,11 +116,21 @@ console.log("done nigga")
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="first-name">Name</Label>
-                      <Input value={name} onChange={(e)=>setName(e.target.value)} id="first-name" placeholder="Name" />
+                      <Input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        id="first-name"
+                        placeholder="Name"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="last-name">City</Label>
-                      <Input id="last-name" value={city} onChange={(e)=>setCity(e.target.value)} placeholder="City" />
+                      <Input
+                        id="last-name"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        placeholder="City"
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -125,7 +138,8 @@ console.log("done nigga")
                     <Input
                       id="adress"
                       type="text"
-                      value={address} onChange={(e)=>setAddress(e.target.value)}
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
                       placeholder="Street no x House no y Muhala City"
                     />
                   </div>
@@ -134,18 +148,21 @@ console.log("done nigga")
                     <Input
                       id="phone"
                       type="tel"
-                      value={phoneNumber} onChange={(e)=>setPhoneNumber(e.target.value)}
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
                       placeholder="+92 000 0000000"
                     />
                   </div>
-                  {msg!==null && <p className="text-[#F60000] mt-5 font-bold text-[15px] sm:text-[15px] dark:text-white">
-                   {msg}
-                </p>}
+                  {msg !== null && (
+                    <p className="text-[#F60000] mt-5 font-bold text-[15px] sm:text-[15px] dark:text-white">
+                      {msg}
+                    </p>
+                  )}
                   <Button
-                  disabled={cart?.length>0 ? false : true}
+                    disabled={cart?.length > 0 ? false : true}
                     className="mt-4 w-full"
                     onClick={() => {
-                      placeOrder()
+                      placeOrder();
                     }}
                   >
                     Place the Order

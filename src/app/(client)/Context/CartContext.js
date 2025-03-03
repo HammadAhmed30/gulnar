@@ -44,6 +44,9 @@ export const CartProvider = ({ children }) => {
     );
   };
 
+const emptyCart = () =>{
+  setCart([])
+}
   const updateQuantity = (id, size, newQuantity) => {
     setCart((prevCart) =>
       prevCart.map((item) =>
@@ -82,6 +85,7 @@ export const CartProvider = ({ children }) => {
         updateQuantity,
         subtotal,
         totalItems,
+        emptyCart
       }}
     >
       {children}
