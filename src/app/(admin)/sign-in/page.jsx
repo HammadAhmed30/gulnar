@@ -25,6 +25,7 @@ const AdminForm = () => {
 
   function loginFunctionality() {
     if (usernam !== "" && passwor !== "") {
+      console.log(process.env.NEXT_PUBLIC_USERNAME,"asdasd")
       if (
         usernam === process.env.NEXT_PUBLIC_USERNAME &&
         passwor === process.env.NEXT_PUBLIC_PASSWORD
